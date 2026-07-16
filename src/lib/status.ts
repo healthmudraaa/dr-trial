@@ -3,7 +3,7 @@
 // vocabulary must be centralized"). Operates on the generic visitRecords shape, not a
 // hardcoded visit1/visit2 pair.
 
-import type { Investigator, Patient, PaymentStatus, StudyDefinition, VisitDef, VisitStatus } from "./types";
+import type { Investigator, Patient, PaymentStatus, VisitDef, VisitStatus } from "./types";
 
 // These helpers only ever need a study's visit list, never its `classify` function —
 // narrowing the param type means callers can pass a plain, function-free object
