@@ -32,11 +32,18 @@ export type FieldValue = string | number | boolean;
 
 export type VisitStatus = "captured" | "due" | "overdue" | "missing_fields";
 
+// QC lifecycle after a doctor submits a locked record: the CRO's QC department
+// reviews it and either approves (which is what makes the patient payable) or
+// raises a query back to the doctor. Absent until the record is submitted.
+export type QcStatus = "pending_qc" | "approved" | "query_raised";
+
 export interface VisitRecord {
   status: VisitStatus;
   scheduledFor?: string; // ISO date
   capturedAt?: string; // ISO datetime — when the record synced, drives "live" claims
   locked: boolean; // FR-15: final save locks the record
+  qcStatus?: QcStatus; // set on submission; payment gates on "approved"
+  rxImageUrl?: string; // prescription photo (FR-10)
   data: Record<string, FieldValue>; // keyed by CrfFieldDef.id
   supersededIds?: string[]; // FR-14: prior captures kept for audit, never deleted
 }

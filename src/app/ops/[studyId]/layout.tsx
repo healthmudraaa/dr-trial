@@ -30,6 +30,7 @@ export default async function OpsLayout({
         <nav className="mx-auto flex max-w-6xl flex-wrap gap-1 px-4 pb-2">
           <NavLink href={`/ops/${studyId}/roster`}>Roster</NavLink>
           <NavLink href={`/ops/${studyId}/queue`}>Action queue</NavLink>
+          <NavLink href={`/ops/${studyId}/qc`}>QC review</NavLink>
           <NavLink href={`/ops/${studyId}/payouts`}>Payouts</NavLink>
           <NavLink href={`/ops/${studyId}/reminders`}>Reminders</NavLink>
           <NavLink href={`/ops/${studyId}/queries`}>Data queries</NavLink>

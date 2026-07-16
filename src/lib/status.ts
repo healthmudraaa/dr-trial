@@ -11,7 +11,12 @@ import type { Investigator, Patient, PaymentStatus, VisitDef, VisitStatus } from
 // prop because `classify` isn't serializable).
 type VisitSchedule = { visits: VisitDef[] };
 
-export type AttentionReason = "visit_overdue" | "consent_missing" | "data_query_open" | "missing_mandatory_fields";
+export type AttentionReason =
+  | "visit_overdue"
+  | "consent_missing"
+  | "data_query_open"
+  | "missing_mandatory_fields"
+  | "qc_query";
 
 export interface AttentionItem {
   patientId: string;
@@ -46,6 +51,14 @@ export function getAttentionItems(patient: Patient, study: VisitSchedule): Atten
         severity: "medium",
       });
     }
+    if (record.qcStatus === "query_raised") {
+      items.push({
+        patientId: patient.id,
+        reason: "qc_query",
+        label: `${visit.label}: QC raised a query — respond to proceed`,
+        severity: "high",
+      });
+    }
   }
 
   if (patient.openDataQueries > 0) {
@@ -70,10 +83,15 @@ export function getOverallStatus(patient: Patient, study: VisitSchedule): VisitS
   return "due";
 }
 
+// Complete = payable: every visit locked AND QC-approved by the CRO's QC
+// department, consent on file, no open queries. QC approval is the payment gate.
 export function isPatientComplete(patient: Patient, study: VisitSchedule): boolean {
   return (
     patient.consent.captured &&
-    study.visits.every((v) => patient.visitRecords[v.id]?.locked) &&
+    study.visits.every((v) => {
+      const record = patient.visitRecords[v.id];
+      return record?.locked && record.qcStatus === "approved";
+    }) &&
     patient.openDataQueries === 0
   );
 }

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { StatusChip, paymentStatusChip } from "@/components/ui/StatusChip";
-import { CaptureFlow } from "@/components/investigator/CaptureFlow";
+import { StatusChip, paymentStatusChip, qcStatusChip } from "@/components/ui/StatusChip";
+import { RxCaptureWizard } from "@/components/investigator/RxCaptureWizard";
 import { getStudyBundle } from "@/lib/studies";
 import { getPaymentStatus } from "@/lib/status";
 
@@ -56,7 +56,11 @@ export default async function PatientDetailPage({
         if (record?.locked) {
           return (
             <Card key={visit.id}>
-              <CardHeader title={visit.label} subtitle={`Captured ${record.capturedAt?.slice(0, 10)} · locked`} />
+              <CardHeader
+                title={visit.label}
+                subtitle={`Captured ${record.capturedAt?.slice(0, 10)} · locked — edits need a data query`}
+                action={record.qcStatus ? qcStatusChip(record.qcStatus) : undefined}
+              />
               <CardBody className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
                 {visit.sections
                   .flatMap((s) => s.fields)
@@ -77,9 +81,7 @@ export default async function PatientDetailPage({
             </Card>
           );
         }
-        return (
-          <CaptureFlow key={visit.id} patientId={patient.id} visit={visit} initialData={record?.data} />
-        );
+        return <RxCaptureWizard key={visit.id} patientId={patient.id} visit={visit} />;
       })}
     </div>
   );

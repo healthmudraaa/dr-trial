@@ -47,6 +47,17 @@ export function visitStatusChip(status: "captured" | "due" | "overdue" | "missin
   }
 }
 
+export function qcStatusChip(status: "pending_qc" | "approved" | "query_raised") {
+  switch (status) {
+    case "pending_qc":
+      return <StatusChip tone="warn">Awaiting QC</StatusChip>;
+    case "approved":
+      return <StatusChip tone="good">QC approved</StatusChip>;
+    case "query_raised":
+      return <StatusChip tone="bad">QC query raised</StatusChip>;
+  }
+}
+
 export function paymentStatusChip(status: "paid" | "payable" | "blocked_docs" | "in_progress") {
   switch (status) {
     case "paid":
