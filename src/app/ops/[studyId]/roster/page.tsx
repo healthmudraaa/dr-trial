@@ -1,21 +1,22 @@
+"use client";
+
+import { use, useMemo } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/Card";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { getStudyBundle } from "@/lib/studies";
+import { useDb } from "@/lib/store";
 
-export default async function RosterPage({ params }: { params: Promise<{ studyId: string }> }) {
-  const { studyId } = await params;
-  const bundle = getStudyBundle(studyId);
-  if (!bundle) notFound();
-  const { investigators, patients } = bundle;
+export default function RosterPage({ params }: { params: Promise<{ studyId: string }> }) {
+  const { studyId } = use(params);
+  const db = useDb();
+  const investigators = useMemo(() => db.investigators.filter((i) => i.studyId === studyId), [db.investigators, studyId]);
 
   return (
     <Card>
       <CardBody className="space-y-2">
         {investigators.map((inv) => {
-          const enrolled = patients.filter((p) => p.investigatorId === inv.id).length;
+          const enrolled = db.patients.filter((p) => p.investigatorId === inv.id && p.studyId === studyId).length;
           return (
             <Link
               key={inv.id}

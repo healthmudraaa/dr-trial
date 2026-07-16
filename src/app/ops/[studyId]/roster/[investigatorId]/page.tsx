@@ -1,24 +1,33 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { use, useMemo } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { StatusChip, visitStatusChip, paymentStatusChip } from "@/components/ui/StatusChip";
-import { getStudyBundle } from "@/lib/studies";
+import { getStudy } from "@/lib/studies";
+import { useDb } from "@/lib/store";
 import { getOverallStatus, getPaymentStatus } from "@/lib/status";
 import { getPayoutSummary } from "@/lib/payouts";
 
-export default async function InvestigatorDetailPage({
+export default function InvestigatorDetailPage({
   params,
 }: {
   params: Promise<{ studyId: string; investigatorId: string }>;
 }) {
-  const { studyId, investigatorId } = await params;
-  const bundle = getStudyBundle(studyId);
-  if (!bundle) notFound();
-  const { study, investigators, patients } = bundle;
-  const investigator = investigators.find((i) => i.id === investigatorId);
-  if (!investigator) notFound();
+  const { studyId, investigatorId } = use(params);
+  const study = getStudy(studyId);
+  const db = useDb();
+  const investigator = useMemo(
+    () => db.investigators.find((i) => i.id === investigatorId),
+    [db.investigators, investigatorId]
+  );
+  const mine = useMemo(
+    () => db.patients.filter((p) => p.investigatorId === investigatorId && p.studyId === studyId),
+    [db.patients, investigatorId, studyId]
+  );
+  if (!study || !investigator) return null;
 
-  const mine = patients.filter((p) => p.investigatorId === investigator.id);
-  const summary = getPayoutSummary(investigator, patients, study);
+  const rate = db.settings[studyId]?.ratePerCompletedPatient ?? study.ratePerCompletedPatient;
+  const summary = getPayoutSummary(investigator, mine, { ratePerCompletedPatient: rate, visits: study.visits });
 
   return (
     <div className="space-y-6">

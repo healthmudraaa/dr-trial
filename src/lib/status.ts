@@ -97,6 +97,7 @@ export function isPatientComplete(patient: Patient, study: VisitSchedule): boole
 }
 
 export function getPaymentStatus(patient: Patient, investigator: Investigator, study: VisitSchedule): PaymentStatus {
+  if (patient.paymentReleasedAt) return "paid";
   if (!isPatientComplete(patient, study)) return "in_progress";
   if (!investigator.documentsSigned) return "blocked_docs"; // FR-05/FR-54 — would be payable but for the MOU
   return "payable"; // release handled by Ops ledger — FR-39

@@ -1,18 +1,32 @@
+"use client";
+
+import { use, useMemo } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { paymentStatusChip, StatusChip } from "@/components/ui/StatusChip";
-import { getStudyBundle } from "@/lib/studies";
+import { Button } from "@/components/ui/Button";
+import { getStudy } from "@/lib/studies";
+import { useDb } from "@/lib/store";
+import { getSession } from "@/lib/session";
 import { getAttentionItems, getPaymentStatus } from "@/lib/status";
 
-export default async function DashboardPage({ params }: { params: Promise<{ studyId: string }> }) {
-  const { studyId } = await params;
-  const bundle = getStudyBundle(studyId);
-  if (!bundle) notFound();
-  const { study, investigators, patients } = bundle;
-  const investigator = investigators[0];
-  const mine = patients.filter((p) => p.investigatorId === investigator.id);
+export default function DashboardPage({ params }: { params: Promise<{ studyId: string }> }) {
+  const { studyId } = use(params);
+  const study = getStudy(studyId);
+  const db = useDb();
+  const session = typeof window !== "undefined" ? getSession("dr", studyId) : null;
+
+  const investigator = useMemo(
+    () => db.investigators.find((i) => i.id === session?.userId) ?? db.investigators.find((i) => i.studyId === studyId),
+    [db.investigators, session?.userId, studyId]
+  );
+  const mine = useMemo(
+    () => db.patients.filter((p) => p.studyId === studyId && p.investigatorId === investigator?.id),
+    [db.patients, studyId, investigator?.id]
+  );
+
+  if (!study || !investigator) return null;
 
   const visitCounts = study.visits.map((v) => ({
     visit: v,
@@ -23,24 +37,37 @@ export default async function DashboardPage({ params }: { params: Promise<{ stud
     .map((p) => ({ patient: p, items: getAttentionItems(p, study) }))
     .filter((x) => x.items.length > 0);
 
+  const rate = db.settings[studyId]?.ratePerCompletedPatient ?? study.ratePerCompletedPatient;
   const paymentCounts = mine.reduce(
     (acc, p) => {
-      const status = getPaymentStatus(p, investigator, study);
-      acc[status] += 1;
+      acc[getPaymentStatus(p, investigator, study)] += 1;
       return acc;
     },
     { paid: 0, payable: 0, blocked_docs: 0, in_progress: 0 } as Record<string, number>
   );
-  const earned = (paymentCounts.paid + paymentCounts.payable) * study.ratePerCompletedPatient;
+  const earned = paymentCounts.paid * rate;
+  const pendingAmount = paymentCounts.payable * rate;
 
   const currencyFmt = new Intl.NumberFormat(study.locale, {
     style: "currency",
-    currency: study.currency,
+    currency: db.settings[studyId]?.currency ?? study.currency,
     maximumFractionDigits: 0,
   });
 
   return (
     <div className="space-y-6">
+      {!investigator.documentsSigned && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-400">
+          <span>
+            <span className="font-semibold">Onboarding incomplete</span> — payouts stay blocked until all study
+            documents are e-signed (FR-05).
+          </span>
+          <Link href={`/dr/${studyId}/onboarding`}>
+            <Button>Complete onboarding</Button>
+          </Link>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardBody>
@@ -70,14 +97,23 @@ export default async function DashboardPage({ params }: { params: Promise<{ stud
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Honorarium</p>
             <p className="mt-1 text-2xl font-semibold text-teal-700 dark:text-teal-400">{currencyFmt.format(earned)}</p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              {paymentCounts.paid} paid · {paymentCounts.payable} payable
+              paid · {currencyFmt.format(pendingAmount)} approved &amp; awaiting release
             </p>
           </CardBody>
         </Card>
       </div>
 
+      <div className="flex flex-wrap gap-3">
+        <Link href={`/dr/${studyId}/patients/new`}>
+          <Button>+ Register new patient</Button>
+        </Link>
+        <Link href={`/dr/${studyId}/patients`}>
+          <Button variant="secondary">View all patients</Button>
+        </Link>
+      </div>
+
       <Card>
-        <CardHeader title="Needs attention" subtitle="Consent, overdue visits, and open data queries across your panel" />
+        <CardHeader title="Needs attention" subtitle="Consent, overdue visits, QC queries, and open data queries" />
         <CardBody className="space-y-2">
           {attentionByPatient.length === 0 && (
             <p className="text-sm text-slate-500 dark:text-slate-400">Nothing needs attention right now.</p>

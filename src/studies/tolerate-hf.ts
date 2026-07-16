@@ -124,9 +124,33 @@ export const TOLERATE_HF_INVESTIGATORS: Investigator[] = [
     documentsSigned: true,
     patientCap: 20,
   },
+  {
+    id: "inv-005",
+    studyId: "tolerate-hf",
+    name: "Dr. Sunita Deshmukh",
+    qualification: "DM Cardiology",
+    siteCode: "TH-055",
+    region: "West",
+    city: "Mumbai",
+    mobile: "+91 98200 XXXXX",
+    documentsSigned: true,
+    patientCap: 20,
+  },
+  {
+    id: "inv-006",
+    studyId: "tolerate-hf",
+    name: "Dr. Imran Sheikh",
+    qualification: "MD Internal Medicine",
+    siteCode: "TH-076",
+    region: "East",
+    city: "Kolkata",
+    mobile: "+91 98300 XXXXX",
+    documentsSigned: true,
+    patientCap: 20,
+  },
 ];
 
-export const TOLERATE_HF_PATIENTS: Patient[] = [
+const HAND_AUTHORED_PATIENTS: Patient[] = [
   {
     id: "TH-042-P01",
     studyId: "tolerate-hf",
@@ -397,6 +421,106 @@ export const TOLERATE_HF_PATIENTS: Patient[] = [
     openDataQueries: 0,
   },
 ];
+
+// --- deterministic bulk cohort so dashboards and charts have realistic shape ---
+// Fixed-seed PRNG: identical output on server and client (hydration-safe).
+
+function mulberry32(a: number) {
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function generateCohort(): Patient[] {
+  const rng = mulberry32(20260716);
+  const ri = (a: number, b: number) => a + Math.floor(rng() * (b - a + 1));
+  const pick = <T,>(arr: T[]) => arr[Math.floor(rng() * arr.length)];
+  const NOW = new Date("2026-07-16");
+  const DAY = 86400000;
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+  // extra patients per investigator, appended after the hand-authored ones
+  const plan: Array<{ invId: string; site: string; region: string; city: string; startNum: number; count: number }> = [
+    { invId: "inv-001", site: "TH-042", region: "South", city: "Bengaluru", startNum: 5, count: 4 },
+    { invId: "inv-002", site: "TH-017", region: "South", city: "Kochi", startNum: 4, count: 3 },
+    { invId: "inv-003", site: "TH-088", region: "West", city: "Pune", startNum: 3, count: 2 },
+    { invId: "inv-004", site: "TH-103", region: "North", city: "New Delhi", startNum: 4, count: 3 },
+    { invId: "inv-005", site: "TH-055", region: "West", city: "Mumbai", startNum: 1, count: 6 },
+    { invId: "inv-006", site: "TH-076", region: "East", city: "Kolkata", startNum: 1, count: 4 },
+  ];
+
+  const patients: Patient[] = [];
+  for (const site of plan) {
+    for (let n = 0; n < site.count; n++) {
+      const baselineDate = new Date(new Date("2026-02-01").getTime() + ri(0, 140) * DAY);
+      const followupDue = new Date(baselineDate.getTime() + ri(86, 96) * DAY);
+      const consented = rng() < 0.94;
+      const lvef = ri(22, 44);
+      const nyha = pick(["I", "II", "II", "III", "III", "IV"]);
+      const ntprobnp = ri(500, 3400);
+      const potassium = Math.round((3.6 + rng() * 1.6) * 10) / 10;
+      const pillars = {
+        arni: rng() < 0.7,
+        beta_blocker: rng() < 0.8,
+        mra: rng() < 0.5,
+        sglt2i: rng() < 0.55,
+      };
+
+      const baseline: Patient["visitRecords"][string] = {
+        status: "captured",
+        capturedAt: `${iso(baselineDate)}T10:00:00+05:30`,
+        locked: true,
+        qcStatus: rng() < 0.85 ? "approved" : "pending_qc",
+        data: { lvef, nyha, ntprobnp, potassium, ...pillars },
+      };
+
+      let followup: Patient["visitRecords"][string];
+      if (followupDue <= NOW) {
+        if (rng() < 0.72) {
+          followup = {
+            status: "captured",
+            capturedAt: `${iso(followupDue)}T10:30:00+05:30`,
+            locked: true,
+            qcStatus: rng() < 0.8 ? "approved" : "pending_qc",
+            data: {
+              lvef: Math.min(50, lvef + ri(2, 8)),
+              nyha: pick(["I", "I", "II", "II", "III"]),
+              ntprobnp: Math.max(300, ntprobnp - ri(200, 900)),
+              potassium: Math.round((3.8 + rng() * 1.2) * 10) / 10,
+              ...pillars,
+              sglt2i: pillars.sglt2i || rng() < 0.4,
+            },
+          };
+        } else {
+          followup = { status: "overdue", scheduledFor: iso(followupDue), locked: false, data: {} };
+        }
+      } else {
+        followup = { status: "due", scheduledFor: iso(followupDue), locked: false, data: {} };
+      }
+
+      patients.push({
+        id: `${site.site}-P${String(site.startNum + n).padStart(2, "0")}`,
+        studyId: "tolerate-hf",
+        investigatorId: site.invId,
+        age: ri(46, 82),
+        sex: rng() < 0.66 ? "M" : "F",
+        region: site.region,
+        city: site.city,
+        registeredAt: `${iso(baselineDate)}T09:30:00+05:30`,
+        consent: consented ? { captured: true, capturedAt: `${iso(baselineDate)}T09:45:00+05:30` } : { captured: false },
+        visitRecords: { baseline, followup },
+        openDataQueries: 0,
+      });
+    }
+  }
+  return patients;
+}
+
+export const TOLERATE_HF_PATIENTS: Patient[] = [...HAND_AUTHORED_PATIENTS, ...generateCohort()];
 
 export const TOLERATE_HF_TICKETS: SupportTicket[] = [
   {

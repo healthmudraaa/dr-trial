@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
-import type { CrfFieldDef, VisitDef } from "@/lib/types";
+import type { CrfFieldDef, FieldValue, VisitDef } from "@/lib/types";
 
 // The doctor's capture pipeline, per FR-10–FR-15 and the QC/payment flow:
 //
@@ -55,7 +55,15 @@ function simulateAiExtraction(visit: VisitDef): { values: Record<string, string>
   return { values, unread };
 }
 
-export function RxCaptureWizard({ patientId, visit }: { patientId: string; visit: VisitDef }) {
+export function RxCaptureWizard({
+  patientId,
+  visit,
+  onSubmit,
+}: {
+  patientId: string;
+  visit: VisitDef;
+  onSubmit?: (data: Record<string, FieldValue>) => void;
+}) {
   const [step, setStep] = useState<Step>("photo");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -124,6 +132,16 @@ export function RxCaptureWizard({ patientId, visit }: { patientId: string; visit
   function submitForQc() {
     setStep("submitted");
     log("Record locked (FR-15) and submitted to CRO QC. Payment becomes payable after QC approval.");
+    if (onSubmit) {
+      const parsed: Record<string, FieldValue> = {};
+      for (const f of allFields(visit)) {
+        const raw = values[f.id];
+        if (f.type === "number") parsed[f.id] = Number(raw);
+        else if (f.type === "boolean") parsed[f.id] = raw === "true";
+        else parsed[f.id] = raw ?? "";
+      }
+      onSubmit(parsed);
+    }
   }
 
   return (

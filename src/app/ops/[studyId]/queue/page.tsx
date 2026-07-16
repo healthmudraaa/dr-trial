@@ -1,8 +1,11 @@
+"use client";
+
+import { use, useMemo } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { StatusChip } from "@/components/ui/StatusChip";
-import { getStudyBundle } from "@/lib/studies";
+import { getStudy } from "@/lib/studies";
+import { useDb } from "@/lib/store";
 import { buildOpsInbox, type InboxSource } from "@/lib/inbox";
 
 const SOURCE_LABEL: Record<InboxSource, string> = {
@@ -11,12 +14,21 @@ const SOURCE_LABEL: Record<InboxSource, string> = {
   query: "Data query",
 };
 
-export default async function ActionQueuePage({ params }: { params: Promise<{ studyId: string }> }) {
-  const { studyId } = await params;
-  const bundle = getStudyBundle(studyId);
-  if (!bundle) notFound();
-  const { study, patients, tickets, queries, investigators } = bundle;
-  const inbox = buildOpsInbox(study, patients, tickets, queries, investigators);
+export default function ActionQueuePage({ params }: { params: Promise<{ studyId: string }> }) {
+  const { studyId } = use(params);
+  const study = getStudy(studyId);
+  const db = useDb();
+  const inbox = useMemo(() => {
+    if (!study) return [];
+    return buildOpsInbox(
+      study,
+      db.patients.filter((p) => p.studyId === studyId),
+      db.tickets.filter((t) => t.studyId === studyId),
+      db.queries.filter((q) => q.studyId === studyId),
+      db.investigators.filter((i) => i.studyId === studyId)
+    );
+  }, [db, study, studyId]);
+  if (!study) return null;
 
   return (
     <Card>

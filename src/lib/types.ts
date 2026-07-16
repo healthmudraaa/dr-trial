@@ -84,13 +84,14 @@ export interface Investigator {
 }
 
 export interface Patient {
-  id: string; // e.g. TH-042-P01
+  id: string; // e.g. TH-042-P01 — tokenised study ID, never the patient's name (FR-08)
   studyId: string;
   investigatorId: string;
   age: number;
   sex: "M" | "F";
   region: string;
   city: string;
+  registeredAt?: string;
   consent: {
     captured: boolean;
     imageUrl?: string;
@@ -98,6 +99,7 @@ export interface Patient {
   };
   visitRecords: Record<string, VisitRecord>; // keyed by VisitDef.id
   openDataQueries: number; // FR-15/41
+  paymentReleasedAt?: string; // set when the CRO releases this patient's honorarium
 }
 
 export type PaymentStatus = "paid" | "payable" | "blocked_docs" | "in_progress";
@@ -125,5 +127,45 @@ export interface DataQuery {
   category: string;
   detail: string;
   createdAt: string;
-  status: "open" | "resolved";
+  // open → doctor answers → answered → QC/DM closes → resolved (FR-41 lifecycle)
+  status: "open" | "answered" | "resolved";
+  doctorResponse?: string;
 }
+
+export interface ReminderEvent {
+  studyId: string;
+  patientId: string;
+  visitId: string;
+  state: "sms_sent" | "voice_escalated" | "responded";
+  at: string;
+}
+
+export interface PayoutRelease {
+  studyId: string;
+  investigatorId: string;
+  patientIds: string[];
+  amount: number;
+  releasedAt: string;
+}
+
+export interface AuditEvent {
+  at: string;
+  studyId: string;
+  actor: string; // role or user label
+  action: string;
+}
+
+// The doctor-facing onboarding documents (FR-04); signing all required ones
+// unblocks payouts (FR-05/FR-54).
+export interface OnboardingDoc {
+  id: string;
+  title: string;
+  required: boolean;
+}
+
+export const ONBOARDING_DOCS: OnboardingDoc[] = [
+  { id: "mou", title: "Memorandum of Understanding (MOU)", required: true },
+  { id: "ec_ack", title: "Ethics Committee approval acknowledgement", required: true },
+  { id: "protocol_ack", title: "Protocol summary acknowledgement", required: true },
+  { id: "privacy", title: "Data privacy agreement", required: true },
+];
