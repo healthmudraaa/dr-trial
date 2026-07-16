@@ -85,7 +85,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ stud
           {attentionByPatient.map(({ patient, items }) => (
             <Link
               key={patient.id}
-              href={`/studies/${studyId}/patients/${patient.id}`}
+              href={`/dr/${studyId}/patients/${patient.id}`}
               className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60"
             >
               <div>
@@ -108,7 +108,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ stud
             return (
               <Link
                 key={p.id}
-                href={`/studies/${studyId}/patients/${p.id}`}
+                href={`/dr/${studyId}/patients/${p.id}`}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60"
               >
                 <div>

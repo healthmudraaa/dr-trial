@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { LiveSyncBadge } from "@/components/ui/SyncBadge";
 import { getStudyBundle } from "@/lib/studies";
 
-export default async function StudyInvestigatorLayout({
+// Doctor/Investigator portal — its own URL space (/dr/[studyId]/...) with no
+// navigation into Ops/Admin/other roles. This link is what gets sent to doctors
+// (FR-01: open the study through a web link); role login will sit at this boundary.
+export default async function DoctorPortalLayout({
   children,
   params,
 }: {
@@ -22,7 +25,7 @@ export default async function StudyInvestigatorLayout({
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div>
             <p className="text-xs font-semibold tracking-wide text-teal-700 uppercase dark:text-teal-400">
-              <Link href="/studies">DR Trial</Link>
+              DR Trial · Investigator
             </p>
             <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{study.name}</h1>
           </div>
@@ -35,10 +38,8 @@ export default async function StudyInvestigatorLayout({
           </div>
         </div>
         <nav className="mx-auto flex max-w-5xl gap-1 px-4 pb-2">
-          <NavLink href={`/studies/${studyId}/dashboard`}>Dashboard</NavLink>
-          <NavLink href={`/studies/${studyId}/patients`}>Patients</NavLink>
-          <NavLink href={`/studies/${studyId}/ops/roster`}>Ops</NavLink>
-          <NavLink href={`/studies/${studyId}/admin`}>Admin</NavLink>
+          <NavLink href={`/dr/${studyId}/dashboard`}>Dashboard</NavLink>
+          <NavLink href={`/dr/${studyId}/patients`}>Patients</NavLink>
         </nav>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>

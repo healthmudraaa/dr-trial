@@ -21,18 +21,18 @@ export default async function OpsLayout({
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div>
             <p className="text-xs font-semibold tracking-wide text-teal-700 uppercase dark:text-teal-400">
-              <Link href="/studies">DR Trial</Link> · Ops
+              DR Trial · Ops
             </p>
             <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{study.name}</h1>
           </div>
           <LiveSyncBadge timezone={study.timezone} locale={study.locale} />
         </div>
         <nav className="mx-auto flex max-w-6xl flex-wrap gap-1 px-4 pb-2">
-          <NavLink href={`/studies/${studyId}/ops/roster`}>Roster</NavLink>
-          <NavLink href={`/studies/${studyId}/ops/queue`}>Action queue</NavLink>
-          <NavLink href={`/studies/${studyId}/ops/payouts`}>Payouts</NavLink>
-          <NavLink href={`/studies/${studyId}/ops/reminders`}>Reminders</NavLink>
-          <NavLink href={`/studies/${studyId}/ops/queries`}>Data queries</NavLink>
+          <NavLink href={`/ops/${studyId}/roster`}>Roster</NavLink>
+          <NavLink href={`/ops/${studyId}/queue`}>Action queue</NavLink>
+          <NavLink href={`/ops/${studyId}/payouts`}>Payouts</NavLink>
+          <NavLink href={`/ops/${studyId}/reminders`}>Reminders</NavLink>
+          <NavLink href={`/ops/${studyId}/queries`}>Data queries</NavLink>
         </nav>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>

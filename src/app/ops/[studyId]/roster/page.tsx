@@ -19,7 +19,7 @@ export default async function RosterPage({ params }: { params: Promise<{ studyId
           return (
             <Link
               key={inv.id}
-              href={`/studies/${studyId}/ops/roster/${inv.id}`}
+              href={`/ops/${studyId}/roster/${inv.id}`}
               className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60"
             >
               <div>

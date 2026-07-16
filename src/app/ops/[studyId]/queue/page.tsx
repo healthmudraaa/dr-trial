@@ -40,7 +40,7 @@ export default async function ActionQueuePage({ params }: { params: Promise<{ st
             </div>
             {item.patientId && (
               <Link
-                href={`/studies/${studyId}/ops/roster/${item.investigatorId}`}
+                href={`/ops/${studyId}/roster/${item.investigatorId}`}
                 className="shrink-0 text-xs font-semibold text-teal-700 hover:underline dark:text-teal-400"
               >
                 {item.patientId} ›
