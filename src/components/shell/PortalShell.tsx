@@ -71,13 +71,18 @@ export function PortalShell({
   }
 
   const header = (
-    <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-950/75">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div>
-          <p className="text-xs font-semibold tracking-wide text-teal-700 uppercase dark:text-teal-400">
-            DR Trial · {ROLE_LABEL[role]}
-          </p>
-          <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{study.name}</h1>
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-sm font-bold text-white shadow-sm shadow-teal-700/30">
+            DR
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold tracking-wide text-teal-700 uppercase dark:text-teal-400">
+              DR Trial · {ROLE_LABEL[role]}
+            </p>
+            <h1 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">{study.name}</h1>
+          </div>
         </div>
         <LiveSyncBadge timezone={study.timezone} locale={study.locale} />
         <div className="flex items-center gap-3">
@@ -90,7 +95,7 @@ export function PortalShell({
               signOut(role, studyId);
               router.replace(`/${role}/${studyId}/login`);
             }}
-            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="rounded-xl border border-slate-200 bg-white/60 px-2.5 py-1.5 text-xs font-medium text-slate-500 shadow-sm hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             Sign out
           </button>
@@ -135,10 +140,10 @@ export function PortalShell({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "block rounded-lg px-3 py-2 text-sm font-medium",
+                    "block rounded-xl px-3 py-2 text-sm font-medium",
                     active
-                      ? "bg-teal-700 text-white"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      ? "bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-sm shadow-teal-700/25"
+                      : "text-slate-600 hover:translate-x-0.5 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   )}
                 >
                   {item.label}
@@ -158,9 +163,9 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
     <Link
       href={item.href}
       className={cn(
-        "rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap",
+        "rounded-xl px-3 py-1.5 text-sm font-medium whitespace-nowrap",
         active
-          ? "bg-teal-700 text-white"
+          ? "bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-sm shadow-teal-700/25"
           : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
       )}
     >

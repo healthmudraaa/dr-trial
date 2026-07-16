@@ -14,14 +14,19 @@ import { useDb } from "@/lib/store";
 function LoginFrame({ studyId, roleLabel, children }: { studyId: string; roleLabel: string; children: React.ReactNode }) {
   const study = getStudy(studyId);
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
-      <div className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 dark:bg-slate-950">
+      {/* ambient gradient glows */}
+      <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-teal-400/15 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-teal-600/10 blur-3xl" />
+      <div className="relative w-full max-w-md">
         <div className="mb-6 text-center">
-          <p className="text-xs font-semibold tracking-wide text-teal-700 uppercase dark:text-teal-400">DR Trial</p>
-          <h1 className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{study?.name}</h1>
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 text-base font-bold text-white shadow-lg shadow-teal-700/25">
+            DR
+          </div>
+          <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{study?.name}</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{roleLabel} sign in</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_16px_48px_-16px_rgba(15,23,42,0.18)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
           {children}
         </div>
         <p className="mt-4 text-center text-xs text-slate-400">
