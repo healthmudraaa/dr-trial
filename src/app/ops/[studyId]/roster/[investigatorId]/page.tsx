@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useMemo } from "react";
+import Link from "next/link";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { StatusChip, visitStatusChip, paymentStatusChip } from "@/components/ui/StatusChip";
 import { getStudy } from "@/lib/studies";
@@ -31,6 +32,12 @@ export default function InvestigatorDetailPage({
 
   return (
     <div className="space-y-6">
+      <Link
+        href={`/ops/${studyId}/roster`}
+        className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-teal-700 dark:text-slate-400 dark:hover:text-teal-400"
+      >
+        ‹ All investigators
+      </Link>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{investigator.name}</h2>

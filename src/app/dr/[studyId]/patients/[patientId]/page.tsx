@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
+import Link from "next/link";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { StatusChip, paymentStatusChip, qcStatusChip } from "@/components/ui/StatusChip";
 import { Button } from "@/components/ui/Button";
@@ -42,6 +43,12 @@ export default function PatientDetailPage({
 
   return (
     <div className="space-y-6">
+      <Link
+        href={`/dr/${studyId}/patients`}
+        className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-teal-700 dark:text-slate-400 dark:hover:text-teal-400"
+      >
+        ‹ All patients
+      </Link>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{patient.id}</h2>

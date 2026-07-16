@@ -105,13 +105,13 @@ export default function ClientPatientsPage({ params }: { params: Promise<{ study
                         );
                       }
                       const delta = Math.round((b - a) * 10) / 10;
+                      // deliberately neutral: whether a rise or fall is "good" is
+                      // measure-specific (e.g. LVEF up = good, NT-proBNP down = good)
                       return (
-                        <td key={f.id} className="py-2.5 tabular-nums">
-                          <span className={delta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
-                            {delta > 0 ? "+" : ""}
-                            {delta}
-                            {f.unit ? ` ${f.unit}` : ""}
-                          </span>
+                        <td key={f.id} className="py-2.5 font-medium text-slate-700 tabular-nums dark:text-slate-200">
+                          {delta > 0 ? "+" : ""}
+                          {delta}
+                          {f.unit ? ` ${f.unit}` : ""}
                         </td>
                       );
                     })}

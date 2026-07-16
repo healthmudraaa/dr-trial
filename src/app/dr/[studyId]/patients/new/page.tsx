@@ -53,13 +53,12 @@ export default function RegisterPatientPage({ params }: { params: Promise<{ stud
   }
 
   function completeRegistration() {
-    registerPatient(studyId, investigator!.id, {
+    const id = registerPatient(studyId, investigator!.id, {
       age: Number(age),
       sex: sex as "M" | "F",
       consentCaptured: Boolean(consentUrl),
     });
-    const mine = [...db.patients.filter((p) => p.studyId === studyId && p.investigatorId === investigator!.id)];
-    setNewId(`${investigator!.siteCode}-P${String(mine.length + 1).padStart(2, "0")}`);
+    setNewId(id ?? null);
     setStep("done");
   }
 

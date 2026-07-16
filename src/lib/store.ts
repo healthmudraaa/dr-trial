@@ -125,7 +125,21 @@ export function mutate(actor: string, studyId: string, action: string, fn: (draf
   fn(current);
   current.audit.unshift({ at: new Date().toISOString(), studyId, actor, action });
   if (current.audit.length > 300) current.audit.length = 300;
-  db = { ...current };
+  // Fresh references at every level components memoize on — without this,
+  // useMemo([db.patients]) would serve stale lists after in-place mutations
+  // (e.g. a QC approval not leaving the queue until reload).
+  db = {
+    ...current,
+    patients: [...current.patients],
+    investigators: [...current.investigators],
+    tickets: [...current.tickets],
+    queries: [...current.queries],
+    reminders: [...current.reminders],
+    payouts: [...current.payouts],
+    audit: [...current.audit],
+    docsSigned: { ...current.docsSigned },
+    settings: { ...current.settings },
+  };
   persist();
   notify();
 }
@@ -160,16 +174,18 @@ export function registerPatient(
   studyId: string,
   investigatorId: string,
   input: { age: number; sex: "M" | "F"; consentCaptured: boolean },
-) {
+): string | undefined {
   const bundle = getStudyBundle(studyId);
   const study = bundle?.study;
-  if (!study) return;
+  if (!study) return undefined;
+  let newId: string | undefined;
   mutate("investigator", studyId, "Registered a new patient", (draft) => {
     const inv = draft.investigators.find((i) => i.id === investigatorId);
     if (!inv) return;
     const mine = draft.patients.filter((p) => p.investigatorId === investigatorId);
     const nextNum = mine.length + 1;
     const id = `${inv.siteCode}-P${String(nextNum).padStart(2, "0")}`;
+    newId = id;
     const now = new Date();
     const visitRecords: Patient["visitRecords"] = {};
     study.visits.forEach((v, idx) => {
@@ -197,6 +213,7 @@ export function registerPatient(
       openDataQueries: 0,
     });
   });
+  return newId;
 }
 
 export function submitVisit(
